@@ -4,8 +4,8 @@ pipeline{
     environment {
         DOCKER_IMAGE_NAME = 'ram2715/boot-sonar-docker'
         DOCKERFILE_PATH = 'Dockerfile'
-        REGISTRY_URL = 'docker.io'
-        REGISTRY_CREDENTIALS_ID = 'docker-registry-credentials'
+        DOCKER_URL = 'docker.io'
+        DOCKERHUB_CREDENTIALS = credentials('dockerpassword')
     }
     tools {
         // Install the Maven version configured as "M3" and add it to the path.
@@ -24,12 +24,9 @@ pipeline{
             }
          }
         stage('SonarQube analysis') {
-//    def scannerHome = tool 'SonarScanner 4.0';
-        steps{
-        withSonarQubeEnv('MySonarQubeServer') { 
-        // If you have configured more than one global server connection, you can specify its name
-//      sh "${scannerHome}/bin/sonar-scanner"
-        bat "mvn sonar:sonar"
+            steps{
+                withSonarQubeEnv('MySonarQubeServer') { 
+                bat "mvn sonar:sonar"
     }
         }
         }
@@ -42,17 +39,18 @@ pipeline{
             }
         }
         
-        stage('Push Docker Image') {
+         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry(env.REGISTRY_URL, env.REGISTRY_CREDENTIALS_ID) {
-                        def dockerImage = docker.image(env.DOCKER_IMAGE_NAME)
-                        dockerImage.push()
-                    }
+                   withCredentials([string(credentialsId: 'dockertoken', variable: 'dockertoken')]) {
+    bat "docker login -u ram2715 -p ${dockertoken}"
+    bat "docker push ram2715/boot-sonar-docker"
+}
                 }
             }
-            
         }
+        
+        
        
     }
 }
