@@ -2,7 +2,8 @@ pipeline{
     agent any
     
     environment {
-        DOCKER_IMAGE_NAME = 'ram2715/boot-sonar-docker'
+        DATE_TIME = new Date().format('yyyyMMdd-HH-mm-ss')
+        DOCKER_IMAGE_NAME = "ram2715/boot-sonar-docker-${DATE_TIME}"
         DOCKERFILE_PATH = 'Dockerfile'
         DOCKER_URL = 'docker.io'
         DOCKERHUB_CREDENTIALS = credentials('dockerpassword')
@@ -33,6 +34,7 @@ pipeline{
         
         stage('Build Docker Image') {
             steps {
+                
                 script {
                     def dockerImage = docker.build(env.DOCKER_IMAGE_NAME, '-f ' + env.DOCKERFILE_PATH + ' .')
                 }
@@ -44,13 +46,12 @@ pipeline{
                 script {
                    withCredentials([string(credentialsId: 'dockertoken', variable: 'dockertoken')]) {
     bat "docker login -u ram2715 -p ${dockertoken}"
-    bat "docker push ram2715/boot-sonar-docker"
-}
+    //bat "docker rmi ram2715/boot-sonar-docker"
+    bat "docker push ${env.DOCKER_IMAGE_NAME}"
+    
+                    }
                 }
             }
-        }
-        
-        
-       
+        }    
     }
 }
