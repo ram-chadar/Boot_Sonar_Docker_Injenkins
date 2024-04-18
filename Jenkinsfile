@@ -54,4 +54,13 @@ pipeline{
             }
         }    
     }
+     post {
+        success {
+            echo 'Pipeline succeeded! Docker image pushed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed! Check logs for details.'
+        }
+    } 
+    
 }
